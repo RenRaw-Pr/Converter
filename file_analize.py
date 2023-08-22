@@ -184,9 +184,9 @@ def insert_info(path, sheets) -> None:
                 for parse_sheet in sheets[0]:
                     parse_sheet = file[parse_sheet]
                     
-                    for b, parse_row in enumerate(parse_sheet[f"D5:AV{parse_sheet.max_row}"]):
+                    for b, parse_row in enumerate(parse_sheet[f"C5:AV{parse_sheet.max_row}"]):
                         # если информация полностью совпадает и все цены есть
-                        if str(row[2].value)==str(parse_row[0].value) and str(row[3].value)==str(parse_row[1].value) and str(parse_row[11].value)!=None and str(parse_row[25].value)!=None and str(parse_row[39].value)!=None:
+                        if str(row[2].value)==str(parse_row[0].value) and str(row[3].value)==str(parse_row[2].value) and str(parse_row[12].value)!=None and str(parse_row[26].value)!=None and str(parse_row[40].value)!=None:
                             for copy_row in parse_sheet[f"B{b+5}:AV{b+5}"]:
                                 for i, copy_cell in enumerate(copy_row):
                                     worksheet.cell(row=a+parse_coordinate, column=i+start_coordinate[1]).value = copy(copy_cell.value)
@@ -200,12 +200,12 @@ def insert_info(path, sheets) -> None:
                             parse_state = True
                             break
                         # если нет цены 
-                        if str(row[2].value)==str(parse_row[0].value) and str(row[3].value)==str(parse_row[1].value) and (str(parse_row[11].value)==None or str(parse_row[25].value)==None or str(parse_row[39].value)==None):
+                        if str(row[2].value)==str(parse_row[0].value) and str(row[3].value)==str(parse_row[2].value) and (str(parse_row[12].value)==None or str(parse_row[26].value)==None or str(parse_row[40].value)==None):
                             bufer_data = parse_sheet[f"A{b+5}:AV{b+5}"][0]
                             error_code = 102
                             parse_state=False
                         #если не совпадает ед. изм.
-                        if str(row[2].value)==str(parse_row[0].value) and str(row[3].value)!=str(parse_row[1].value):
+                        if str(row[2].value)==str(parse_row[0].value) and str(row[3].value)!=str(parse_row[2].value):
                             bufer_data = parse_sheet[f"A{b+5}:AV{b+5}"][0]
                             error_code = 103
                             parse_state=False
