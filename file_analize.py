@@ -25,6 +25,9 @@ def create_error_table_header(error_worksheet, main_sheet) -> None:
     :return: None
     """
 
+    for merge in list(error_worksheet.merged_cells):
+        error_worksheet.unmerge_cells(range_string=str(merge))
+    
     error_worksheet["A1"].value = "Ненайденные позиции из ЛСР"
     error_worksheet["A3"].value = "№ п/п"
     error_worksheet["B3"].value = "№ в ЛСР"

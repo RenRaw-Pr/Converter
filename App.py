@@ -193,7 +193,7 @@ class Instruction(customtkinter.CTkTextbox):
 
     def __init__(self, master):
         super().__init__(master, font=master.instructions_font, corner_radius=5)
-        self.insert('0.0', ''.join(open('instruction.txt', encoding='utf-8').readlines()))
+        self.insert('0.0', ''.join(open(os.path.abspath('.//instruction.txt'), encoding='utf-8').readlines()))
         self.configure(state='disabled')
 
 class Check_info(customtkinter.CTkFrame):
