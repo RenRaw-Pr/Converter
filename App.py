@@ -69,7 +69,7 @@ class App(customtkinter.CTk):
         customtkinter.set_default_color_theme('blue')
         self.VERSION = '0.0.1.0'
         self.APP_WIDTH = 780
-        self.APP_HEIGHT = 550
+        self.APP_HEIGHT = 800
         
         self.buttons_font = customtkinter.CTkFont("Avenir Next", 14, 'normal')
         self.labels_font = customtkinter.CTkFont("Avenir Next", 14, 'normal')
@@ -177,13 +177,28 @@ class Main_bar(customtkinter.CTkFrame):
         self.logo = customtkinter.CTkLabel(self, image=self.logo_img, text='')
         self.logo.pack(padx=5, pady=5, side='left')
 
+        self.scaling_optionemenu = customtkinter.CTkOptionMenu(self, height=30, width=50,
+                                                               values=["100%", "90%", "80%"],
+                                                               font=self.master.buttons_font,
+                                                               command=self.change_scaling_event)
+        self.scaling_optionemenu.pack(padx=[0,5], pady=5, side='right')
+        
+        self.scaling_label = customtkinter.CTkLabel(self, height=30, width=50,
+                                                    text="Маштаб интерфейса:", font=self.master.labels_font,)
+        self.scaling_label.pack(padx=[0,5], pady=5, side='right')
+
         self.reload_img = customtkinter.CTkImage(light_image=Image.open(os.path.abspath("./Design/restart.png")), size=(20, 20))
-        self.reload_button = customtkinter.CTkButton(self, height=20,
+        self.reload_button = customtkinter.CTkButton(self, height=30,
                                                      text='| Очистить поле ввода и выбора', font=master.buttons_font,
-                                                     fg_color='transparent',
                                                      image=self.reload_img, compound='right',
                                                      command=lambda:master.reload())
         self.reload_button.pack(padx=[0,5], pady=5, side='right')
+
+    def change_scaling_event(self, new_scaling: str)-> None:
+        new_scaling_float = int(new_scaling.replace("%", "")) / 100
+        customtkinter.set_widget_scaling(new_scaling_float)
+        customtkinter.set_window_scaling(new_scaling_float)
+        return None
 
 class Instruction(customtkinter.CTkTextbox):
     """
@@ -237,171 +252,158 @@ class Check_info(customtkinter.CTkFrame):
     def __init__(self, master):
         super().__init__(master, corner_radius=5)
 
-        self.choose_file_button = customtkinter.CTkButton(self, height=20,
-                                                          text='Выбор файла для обработки:', font=self.master.buttons_font, anchor='w',
-                                                          command=lambda: self.choose_file())
-        self.choose_file_button.pack(padx=5, pady=5, fill='x', expand=False)
+        self.choose_source_button = customtkinter.CTkButton(self, height=20,
+                                                          text='Выбор файла с источником данных:', font=self.master.buttons_font, anchor='w',
+                                                          command=lambda: self.choose_source_file())
+        self.choose_source_button.pack(padx=5, pady=[5,10], fill='x', expand=False)
 
-    def choose_file(self) -> None:
+    def choose_source_file(self) -> None:
         """
-        Получение абсолютного пути к выбранному файлу и открытие полного интерфейса
+        Получение абсолютного пути к файлу с источником данных
 
         :return: None
         """
 
-        self.file_path = fd.askopenfile(filetypes=[('Excel tables', '*.xlsx')])
-        if self.file_path != '':
+        self.source_file_path = fd.askopenfile(filetypes=[('Excel tables', '*.xlsx')])
+        if self.source_file_path != '':
             try: self.master.correct_save_label.destroy()
             except Exception as e: pass
-            self.choose_file_button.configure(text=f'Выбрано: {os.path.basename(self.file_path.name)}', state='disabled')
-            self.sheets = fa.sheets(self.file_path.name)
-            self.create_buttons()
+            self.choose_source_button.configure(text=f'Выбрано: {os.path.basename(self.source_file_path.name)}', state='disabled')
+            self.sheets = fa.source_sheets(self.source_file_path.name)
+            self.create_source_selections()
         
         return None
 
-    def create_buttons(self) -> None:
+    def create_source_selections(self) -> None:
         """
-        Создание дополнительных кнопок для выбора листов анализа
+        Создание дополнительных кнопок для выбора листов источников
         
         :return: None
         """
 
         self.source_label = customtkinter.CTkLabel(self, height=20,
-                                                   text='–-- Листы с источниками данных ---', font=self.master.labels_font)
+                                                   text='–-- Выбор листов с источниками данных ---', font=self.master.labels_font)
         self.source_label.pack(padx=0, pady=[0,5], fill='both', expand=False)
 
         self.source_frame = customtkinter.CTkScrollableFrame(self, height=40)
         self.source_frame.pack(padx=5, pady=[0,5], fill='both', expand=False)
 
-        self.process_label = customtkinter.CTkLabel(self, height=20,
-                                                   text='--- Листы для заполнения данными ---', font=self.master.labels_font)
-        self.process_label.pack(padx=0, pady=[0,5], fill='both', expand=False)
-
-        self.process_frame = customtkinter.CTkScrollableFrame(self, height=40)
-        self.process_frame.pack(padx=5, pady=[0,5], fill='both', expand=False)
-
-        self.error_label = customtkinter.CTkLabel(self, height=20,
-                                                   text='--- Лист для заполнения отсутствующими данными ---', font=self.master.labels_font)
-        self.error_label.pack(padx=0, pady=[0,5], fill='both', expand=False)
-
-        self.error_frame = customtkinter.CTkScrollableFrame(self, height=40)
-        self.error_frame.pack(padx=5, pady=[0,5], fill='both', expand=True)
-
         self.source_switches = []
-        self.process_switches = []
-        self.error_switches = []
  
         for sheet in self.sheets:
             self.source_switches.append(customtkinter.CTkCheckBox(self.source_frame,
                                                                     text=sheet[0], 
                                                                     font=self.master.buttons_font,
-                                                                    command=lambda:self.checked_for_source()))
-            self.process_switches.append(customtkinter.CTkCheckBox(self.process_frame,
-                                                                    text=sheet[0],
-                                                                    font=self.master.buttons_font,
-                                                                    command=lambda:self.checked_for_process()))
-            self.error_switches.append(customtkinter.CTkCheckBox(self.error_frame,
-                                                                    text=sheet[0],
-                                                                    font=self.master.buttons_font,
-                                                                    command=lambda:self.checked_for_error()))
+                                                                    command=None))
         
         for i in range(len(self.sheets)):
             self.source_switches[i].grid(row=i, column=0, padx=[1,10], pady=1, sticky='w')
-            self.s_info_label = customtkinter.CTkLabel(self.source_frame,
+            self.source_info_label = customtkinter.CTkLabel(self.source_frame,
                                                        text=f'| Кол-во столбцов: {self.sheets[i][1]}, строк: {self.sheets[i][2]}',
                                                        font=self.master.buttons_font)
-            self.s_info_label.grid(row=i, column=1, padx=1, pady=1, sticky='e')
-            
-            self.process_switches[i].grid(row=i, column=0, padx=[1,10], pady=1, sticky='w')
-            self.p_info_label = customtkinter.CTkLabel(self.process_frame,
-                                                       text=f'| Кол-во столбцов: {self.sheets[i][1]}, строк: {self.sheets[i][2]}',
-                                                       font=self.master.buttons_font)
-            self.p_info_label.grid(row=i, column=1, padx=1, pady=1, sticky='e')
-            
-            self.error_switches[i].grid(row=i, column=0, padx=[1,10], pady=1, sticky='w')
-            self.e_info_label = customtkinter.CTkLabel(self.error_frame,
-                                                       text=f'| Кол-во столбцов: {self.sheets[i][1]}, строк: {self.sheets[i][2]}',
-                                                       font=self.master.buttons_font)
-            self.e_info_label.grid(row=i, column=1, padx=1, pady=1, sticky='e')
+            self.source_info_label.grid(row=i, column=1, padx=1, pady=1, sticky='e')
         
+        self.choose_lsr_directory_button = customtkinter.CTkButton(self, height=20,
+                                                          text='Выбор папки файла с ЛСР:', font=self.master.buttons_font, anchor='w',
+                                                          command=lambda: self.choose_lsr_directory())
+        self.choose_lsr_directory_button.pack(padx=5, pady=[10,5], fill='x', expand=False)
+        
+        '''
         self.commit_button = customtkinter.CTkButton(self, height=20,
                                                           text='Запустить обработку файла', font=self.master.buttons_font, anchor='n',
                                                           command=lambda: self.start_process())
         self.commit_button.pack(padx=5, pady=5, fill='x', expand=False)
+        '''
+        return None
+    
+    def choose_lsr_directory(self) -> None:
+        """
+        Получение абсолютного пути к папке с ЛСР
 
+        :return: None
+        """
+
+        self.lsr_directory_path = fd.askdirectory()
+        if self.lsr_directory_path != '':
+            self.choose_lsr_directory_button.configure(text=f'Выбрано: {os.path.basename(self.lsr_directory_path)}', state='disabled')
+            fa.lsr_documents(self.lsr_directory_path)
+            self.lsr_documents = fa.lsr_documents(self.lsr_directory_path)
+            self.create_lsr_selections()
+        
         return None
     
-    def checked_for_source(self) -> None:
+    def create_lsr_selections(self) -> None:
         """
-        Служебная функция для проверки выбранных листов
+        Создание дополнительных кнопок для выбора листов источников и папки с ЛСР
         
         :return: None
         """
-        for button in self.source_switches:
-            if button.get() and button.cget('state')=='normal':
-                for elem in self.process_switches:
-                    if button.cget('text')==elem.cget('text'): elem.configure(state='disabled')
-                for elem in self.error_switches:   
-                    if button.cget('text')==elem.cget('text'): elem.configure(state='disabled')
-            if button.get()==False and button.cget('state')=='normal':
-                for elem in self.process_switches:
-                    if button.cget('text')==elem.cget('text'): elem.configure(state='normal')
-                for elem in self.error_switches:  
-                    if button.cget('text')==elem.cget('text'): elem.configure(state='normal')
-        return None
-    
-    def checked_for_process(self) -> None:
-        """
-        Служебная функция для проверки выбранных листов
+
+        self.lsr_label = customtkinter.CTkLabel(self, height=20,
+                                                   text='–-- документы ЛСР для обработки ---', font=self.master.labels_font)
+        self.lsr_label.pack(padx=0, pady=[0,5], fill='both', expand=False)
+
+        self.lsr_frame = customtkinter.CTkScrollableFrame(self, height=40)
+        self.lsr_frame.pack(padx=5, pady=[0,5], fill='both', expand=False)
+
+        self.lsr_switches = []
+ 
+        for lsr in self.lsr_documents:
+            self.lsr_switches.append(customtkinter.CTkCheckBox(self.lsr_frame,
+                                                                    text=lsr[0], 
+                                                                    font=self.master.buttons_font,
+                                                                    command=None))
         
-        :return: None
-        """ 
-        for button in self.process_switches:
-            if button.get() and button.cget('state')=='normal':
-                for elem in self.source_switches:
-                    if button.cget('text')==elem.cget('text'): elem.configure(state='disabled')
-                for elem in self.error_switches:   
-                    if button.cget('text')==elem.cget('text'): elem.configure(state='disabled')
-            if button.get()==False and button.cget('state')=='normal':
-                for elem in self.source_switches:
-                    if button.cget('text')==elem.cget('text'): elem.configure(state='normal')
-                for elem in self.error_switches:  
-                    if button.cget('text')==elem.cget('text'): elem.configure(state='normal')
-        return None
-    
-    def checked_for_error(self) -> None:
-        """
-        Служебная функция для проверки выбранных листов
+        for i in range(len(self.lsr_documents)):
+            self.lsr_switches[i].grid(row=i, column=0, padx=[1,10], pady=1, sticky='w')
+            self.lsr_info_label = customtkinter.CTkLabel(self.lsr_frame,
+                                                       text='| '+self.lsr_documents[i][1],
+                                                       font=self.master.buttons_font)
+            self.lsr_info_label.grid(row=i, column=1, padx=10, pady=1, sticky='w')
         
-        :return: None
-        """
-        for button in self.error_switches:
-            if button.get() and button.cget('state')=='normal':
-                for elem in self.source_switches:
-                    if button.cget('text')==elem.cget('text'): elem.configure(state='disabled')
-                for elem in self.process_switches:   
-                    if button.cget('text')==elem.cget('text'): elem.configure(state='disabled')
-            if button.get()==False and button.cget('state')=='normal':
-                for elem in self.source_switches:
-                    if button.cget('text')==elem.cget('text'): elem.configure(state='normal')
-                for elem in self.process_switches:  
-                    if button.cget('text')==elem.cget('text'): elem.configure(state='normal')
+        self.choose_all_lsr_button = customtkinter.CTkCheckBox(self, height=20, width=70,
+                                                          text='Выбрать все', font=self.master.buttons_font,
+                                                          command=lambda: self.choose_all_lsr())
+        self.choose_all_lsr_button.pack(padx=5, pady=[0,10], anchor='w', expand=False)
+
+
+        self.commit_button = customtkinter.CTkButton(self, height=20,
+                                                          text='Запустить обработку файла', font=self.master.buttons_font, anchor='n',
+                                                          command=lambda: self.start_process())
+        self.commit_button.pack(padx=5, pady=5, fill='x', expand=False, side='bottom')
+        
         return None
 
+    def choose_all_lsr(self) -> None:
+        """
+        Функция выбора всех ЛСР
+        
+        :return: None
+        """
+        if self.choose_all_lsr_button.get():
+            for elem in self.lsr_switches:
+                elem.select()
+        else:
+            for elem in self.lsr_switches:
+                elem.deselect()
+        return None
+    
+    
     def get_states(self) -> None:
         """
         Служебная функция для проверки выбранных листов
         
         :return: None
         """
-        self.selected_sheets = [[],[],[]]
+        self.source_sheets = []
+        self.lsr_documents_states = []
         for button in self.source_switches:
-            if button.get(): self.selected_sheets[0].append(button.cget('text'))
-        for button in self.process_switches:
-            if button.get(): self.selected_sheets[1].append(button.cget('text'))
-        for button in self.error_switches:
-            if button.get(): self.selected_sheets[2].append(button.cget('text'))
+            if button.get(): self.source_sheets.append(button.cget('text'))
+        for i in range(len(self.lsr_documents)):
+            if self.lsr_switches[i].get(): self.lsr_documents_states.append(self.lsr_documents[i])
+        
         return None
+    
     
     def start_process(self) -> None:
         """
@@ -412,7 +414,7 @@ class Check_info(customtkinter.CTkFrame):
         self.commit_button.configure(state='disabled')
         self.master.main_bar_frame.reload_button.configure(state='disabled')
         self.get_states()
-        fa.insert_info(self.file_path.name, self.selected_sheets)
+        fa.insert_info(self.source_file_path.name, self.source_sheets, self.lsr_documents_states)
         self.master.add_correct_save_label()
         return None
     
