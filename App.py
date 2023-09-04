@@ -1,3 +1,4 @@
+import sys
 import os
 
 from tkinter import filedialog as fd
@@ -6,6 +7,10 @@ import customtkinter
 from PIL import Image
 
 import file_analize as fa
+
+def resource_path(relative_path):
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
 
 class App(customtkinter.CTk):
     """
@@ -173,7 +178,7 @@ class Main_bar(customtkinter.CTkFrame):
     def __init__(self, master):
         super().__init__(master, height=50, corner_radius=5)
 
-        self.logo_img = customtkinter.CTkImage(light_image=Image.open(os.path.abspath("./Design/logo.png")), size=(120, 40))
+        self.logo_img = customtkinter.CTkImage(light_image=Image.open(resource_path("logo.png")), size=(120, 40))
         self.logo = customtkinter.CTkLabel(self, image=self.logo_img, text='')
         self.logo.pack(padx=5, pady=5, side='left')
 
@@ -187,7 +192,7 @@ class Main_bar(customtkinter.CTkFrame):
                                                     text="Маштаб интерфейса:", font=self.master.labels_font,)
         self.scaling_label.pack(padx=[0,5], pady=5, side='right')
 
-        self.reload_img = customtkinter.CTkImage(light_image=Image.open(os.path.abspath("./Design/restart.png")), size=(20, 20))
+        self.reload_img = customtkinter.CTkImage(light_image=Image.open(resource_path("restart.png")), size=(20, 20))
         self.reload_button = customtkinter.CTkButton(self, height=30,
                                                      text='| Очистить поле ввода и выбора', font=master.buttons_font,
                                                      image=self.reload_img, compound='right',
@@ -208,7 +213,7 @@ class Instruction(customtkinter.CTkTextbox):
 
     def __init__(self, master):
         super().__init__(master, font=master.instructions_font, corner_radius=5, wrap='word')
-        self.insert('0.0', ''.join(open(os.path.abspath('.//instruction.txt'), encoding='utf-8').readlines()))
+        self.insert('0.0', ''.join(open(resource_path('instruction.txt'), encoding='utf-8').readlines()))
         self.configure(state='disabled')
 
 class Check_info(customtkinter.CTkFrame):
