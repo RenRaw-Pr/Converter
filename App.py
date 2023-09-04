@@ -67,13 +67,13 @@ class App(customtkinter.CTk):
 
         customtkinter.set_appearance_mode('Dark')
         customtkinter.set_default_color_theme('blue')
-        self.VERSION = '0.0.1.0'
+        self.VERSION = '0.0.1.2'
         self.APP_WIDTH = 780
         self.APP_HEIGHT = 800
         
         self.buttons_font = customtkinter.CTkFont("Avenir Next", 14, 'normal')
         self.labels_font = customtkinter.CTkFont("Avenir Next", 14, 'normal')
-        self.instructions_font = customtkinter.CTkFont("Avenir Next", 12, 'normal')
+        self.instructions_font = customtkinter.CTkFont("Avenir Next", 13, 'normal')
 
         return 0
     
@@ -207,7 +207,7 @@ class Instruction(customtkinter.CTkTextbox):
     """
 
     def __init__(self, master):
-        super().__init__(master, font=master.instructions_font, corner_radius=5)
+        super().__init__(master, font=master.instructions_font, corner_radius=5, wrap='word')
         self.insert('0.0', ''.join(open(os.path.abspath('.//instruction.txt'), encoding='utf-8').readlines()))
         self.configure(state='disabled')
 
@@ -304,16 +304,10 @@ class Check_info(customtkinter.CTkFrame):
             self.source_info_label.grid(row=i, column=1, padx=1, pady=1, sticky='e')
         
         self.choose_lsr_directory_button = customtkinter.CTkButton(self, height=20,
-                                                          text='Выбор папки файла с ЛСР:', font=self.master.buttons_font, anchor='w',
+                                                          text='Выбор папки с файлами ЛСР:', font=self.master.buttons_font, anchor='w',
                                                           command=lambda: self.choose_lsr_directory())
         self.choose_lsr_directory_button.pack(padx=5, pady=[10,5], fill='x', expand=False)
         
-        '''
-        self.commit_button = customtkinter.CTkButton(self, height=20,
-                                                          text='Запустить обработку файла', font=self.master.buttons_font, anchor='n',
-                                                          command=lambda: self.start_process())
-        self.commit_button.pack(padx=5, pady=5, fill='x', expand=False)
-        '''
         return None
     
     def choose_lsr_directory(self) -> None:
@@ -417,7 +411,7 @@ class Check_info(customtkinter.CTkFrame):
         fa.insert_info(self.source_file_path.name, self.source_sheets, self.lsr_documents_states)
         self.master.add_correct_save_label()
         return None
-    
+
 if __name__ == "__main__":
     app = App()
     app.mainloop()
