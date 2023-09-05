@@ -152,7 +152,7 @@ class App(customtkinter.CTk):
         """
         self.reload()
         self.main_bar_frame.reload_button.configure(state='normal')
-        self.save_img = customtkinter.CTkImage(light_image=Image.open(os.path.abspath("./Design/save.png")), size=(48, 60))
+        self.save_img = customtkinter.CTkImage(light_image=Image.open(resource_path("save.png")), size=(48, 60))
         self.correct_save_label = customtkinter.CTkLabel(self.check_info_frame, image=self.save_img,
                                                          text=' Обработка успешно завершена, файл сохранен. ', font=self.labels_font,
                                                          compound='top', padx=5, pady=10)
